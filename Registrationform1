@@ -3,21 +3,20 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 public class RegistrationPanel extends JPanel {
-
     private JTextField nameField, mobileField, addressField;
     private JRadioButton maleButton, femaleButton;
     private JCheckBox termsCheckBox;
-    private JDateChooser dateChooser;
+    private JComboBox<String> dayComboBox, monthComboBox, yearComboBox;
     private JTable table;
     private DefaultTableModel tableModel;
-    
+
     public RegistrationPanel() {
         initComponents();
     }
 
     private void initComponents() {
         setLayout(null);
-        
+
         JLabel titleLabel = new JLabel("Registration Form");
         titleLabel.setBounds(150, 10, 200, 30);
         add(titleLabel);
@@ -25,64 +24,77 @@ public class RegistrationPanel extends JPanel {
         JLabel nameLabel = new JLabel("Name:");
         nameLabel.setBounds(30, 50, 80, 25);
         add(nameLabel);
-        
+
         nameField = new JTextField();
         nameField.setBounds(120, 50, 200, 25);
         add(nameField);
-        
+
         JLabel mobileLabel = new JLabel("Mobile:");
         mobileLabel.setBounds(30, 90, 80, 25);
         add(mobileLabel);
-        
+
         mobileField = new JTextField();
         mobileField.setBounds(120, 90, 200, 25);
         add(mobileField);
-        
+
         JLabel genderLabel = new JLabel("Gender:");
         genderLabel.setBounds(30, 130, 80, 25);
         add(genderLabel);
-        
+
         maleButton = new JRadioButton("Male");
         femaleButton = new JRadioButton("Female");
         maleButton.setBounds(120, 130, 80, 25);
         femaleButton.setBounds(200, 130, 80, 25);
-        
+
         ButtonGroup genderGroup = new ButtonGroup();
         genderGroup.add(maleButton);
         genderGroup.add(femaleButton);
         add(maleButton);
         add(femaleButton);
-        
+
         JLabel dobLabel = new JLabel("DOB:");
         dobLabel.setBounds(30, 170, 80, 25);
         add(dobLabel);
-        
-        dateChooser = new JDateChooser();
-        dateChooser.setBounds(120, 170, 200, 25);
-        add(dateChooser);
-        
+
+        String[] days = new String[31];
+        for (int i = 1; i <= 31; i++) days[i - 1] = String.valueOf(i);
+        dayComboBox = new JComboBox<>(days);
+        dayComboBox.setBounds(120, 170, 60, 25);
+        add(dayComboBox);
+
+        String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        monthComboBox = new JComboBox<>(months);
+        monthComboBox.setBounds(190, 170, 80, 25);
+        add(monthComboBox);
+
+        String[] years = new String[31];
+        for (int i = 0; i < 31; i++) years[i] = String.valueOf(2000 + i);
+        yearComboBox = new JComboBox<>(years);
+        yearComboBox.setBounds(280, 170, 80, 25);
+        add(yearComboBox);
+
         JLabel addressLabel = new JLabel("Address:");
         addressLabel.setBounds(30, 210, 80, 25);
         add(addressLabel);
-        
+
         addressField = new JTextField();
         addressField.setBounds(120, 210, 200, 25);
         add(addressField);
-        
+
         termsCheckBox = new JCheckBox("Accept Terms & Conditions");
         termsCheckBox.setBounds(120, 250, 200, 25);
         add(termsCheckBox);
-        
+
         JButton submitButton = new JButton("Submit");
         submitButton.setBounds(50, 290, 100, 30);
         submitButton.addActionListener(e -> handleSubmit());
         add(submitButton);
-        
+
         JButton resetButton = new JButton("Reset");
         resetButton.setBounds(180, 290, 100, 30);
         resetButton.addActionListener(e -> resetFields());
         add(resetButton);
-        
+
         tableModel = new DefaultTableModel(new String[]{"Name", "Mobile", "Gender", "DOB", "Address"}, 0);
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
@@ -95,10 +107,9 @@ public class RegistrationPanel extends JPanel {
         String mobile = mobileField.getText().trim();
         String gender = maleButton.isSelected() ? "Male" : femaleButton.isSelected() ? "Female" : "";
         String address = addressField.getText().trim();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        String dob = dateChooser.getDate() != null ? sdf.format(dateChooser.getDate()) : "";
+        String dob = dayComboBox.getSelectedItem() + " " + monthComboBox.getSelectedItem() + " " + yearComboBox.getSelectedItem();
 
-        if (name.isEmpty() || mobile.isEmpty() || gender.isEmpty() || address.isEmpty() || dob.isEmpty()) {
+        if (name.isEmpty() || mobile.isEmpty() || gender.isEmpty() || address.isEmpty()) {
             JOptionPane.showMessageDialog(this, "All fields are required!", "Input Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -110,7 +121,7 @@ public class RegistrationPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "You must accept the Terms & Conditions!", "Input Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         tableModel.addRow(new Object[]{name, mobile, gender, dob, address});
         JOptionPane.showMessageDialog(this, "Registration Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
         resetFields();
@@ -122,10 +133,12 @@ public class RegistrationPanel extends JPanel {
         addressField.setText("");
         maleButton.setSelected(false);
         femaleButton.setSelected(false);
-        dateChooser.setDate(null);
+        dayComboBox.setSelectedIndex(0);
+        monthComboBox.setSelectedIndex(0);
+        yearComboBox.setSelectedIndex(0);
         termsCheckBox.setSelected(false);
     }
-    
+
     public static void main(String[] args) {
         JFrame frame = new JFrame("Registration Form");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

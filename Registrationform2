@@ -1,0 +1,117 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.sql.*;
+
+public class RegistrationForm extends JFrame {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/registration_db";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "";
+
+    private JTextField idField, nameField, addressField, contactField;
+    private JRadioButton maleButton, femaleButton;
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private ButtonGroup genderGroup;
+
+    public RegistrationForm() {
+        setTitle("User Registration Form");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(500, 400);
+        setLayout(new BorderLayout());
+
+        JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        formPanel.add(new JLabel("ID:"));
+        idField = new JTextField();
+        formPanel.add(idField);
+
+        formPanel.add(new JLabel("Name:"));
+        nameField = new JTextField();
+        formPanel.add(nameField);
+
+        formPanel.add(new JLabel("Gender:"));
+        JPanel genderPanel = new JPanel();
+        maleButton = new JRadioButton("Male");
+        femaleButton = new JRadioButton("Female");
+        genderGroup = new ButtonGroup();
+        genderGroup.add(maleButton);
+        genderGroup.add(femaleButton);
+        genderPanel.add(maleButton);
+        genderPanel.add(femaleButton);
+        formPanel.add(genderPanel);
+
+        formPanel.add(new JLabel("Address:"));
+        addressField = new JTextField();
+        formPanel.add(addressField);
+
+        formPanel.add(new JLabel("Contact:"));
+        contactField = new JTextField();
+        formPanel.add(contactField);
+        
+        JPanel buttonPanel = new JPanel();
+        JButton registerButton = new JButton("Register");
+        JButton exitButton = new JButton("Exit");
+        
+        registerButton.addActionListener(this::registerUser);
+        exitButton.addActionListener(e -> System.exit(0));
+        
+        buttonPanel.add(registerButton);
+        buttonPanel.add(exitButton);
+        
+        add(formPanel, BorderLayout.NORTH);
+        add(buttonPanel, BorderLayout.CENTER);
+        
+        tableModel = new DefaultTableModel(new String[]{"ID", "Name", "Gender", "Address", "Contact"}, 0);
+        table = new JTable(tableModel);
+        add(new JScrollPane(table), BorderLayout.SOUTH);
+        
+        setVisible(true);
+    }
+
+    private void registerUser(ActionEvent e) {
+        String id = idField.getText().trim();
+        String name = nameField.getText().trim();
+        String gender = maleButton.isSelected() ? "Male" : femaleButton.isSelected() ? "Female" : "";
+        String address = addressField.getText().trim();
+        String contact = contactField.getText().trim();
+        
+        if (id.isEmpty() || name.isEmpty() || gender.isEmpty() || address.isEmpty() || contact.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all fields", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        tableModel.addRow(new Object[]{id, name, gender, address, contact});
+        insertIntoDatabase(id, name, gender, address, contact);
+        
+        idField.setText("");
+        nameField.setText("");
+        addressField.setText("");
+        contactField.setText("");
+        genderGroup.clearSelection();
+        
+        JOptionPane.showMessageDialog(this, "Registration Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void insertIntoDatabase(String id, String name, String gender, String address, String contact) {
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "INSERT INTO registrations (id, name, gender, address, contact) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, id);
+                pstmt.setString(2, name);
+                pstmt.setString(3, gender);
+                pstmt.setString(4, address);
+                pstmt.setString(5, contact);
+                pstmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(RegistrationForm::new);
+    }
+}
